@@ -2,7 +2,7 @@
   "subtitle": "Welcome to",
   "title": {
     "part1": "Aragon App",
-    "part2": "The human-centered DAO infrastructure."
+    "part2": "The human centered Dao infrastructure."
   },
   "testnetIndicator": "TESTNET ACTIVE",
   "menu": "Menu",
@@ -401,7 +401,7 @@
       "description": "Your DAO should live on the blockchain where you expect most of your transactions to happen - where will you trade coins, make payments, etc.  If you already have a token, use the same chain.  The chain cannot be changed later, though you can create a new DAO if you want to. For more details on chains, layer 1 and layer 2, etc see our ",
       "shortTitle": "Select Blockchain",
       "shortDescription": "Decide which blockchain the DAO should be at home on.",
-      "blockchainOverviewGuide.": "Blockchain Overview Guide."
+      "blockchainOverviewGuide.": "Blockchain Overview Guide"
     },
     "step2": {
       "label": "Step 2",
@@ -572,9 +572,9 @@
       "actionLabel": "Create a DAO"
     },
     "learn": {
-      "title": "Learn about DAO",
+      "title": "Learn about DAOs",
       "description": "Explore and learn through our “How-to Guides”, DAO Education, Educational Articles and more!",
-      "actionLabel": "Learn about DAO"
+      "actionLabel": "Learn about DAOs"
     },
     "build": {
       "title": "Build faster",
@@ -600,5 +600,8 @@
       "description": "Create the first financial transaction for this DAO by by either depositing or withdrawing tokens.",
       "buttonLabel": "Create Transaction"
     }
+  },
+  "headerPage": {
+    "title": "DAO Name"
   }
 }

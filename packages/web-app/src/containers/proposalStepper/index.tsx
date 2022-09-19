@@ -26,7 +26,7 @@ type ProposalStepperType = {
 const ProposalStepper: React.FC<ProposalStepperType> = ({
   enableTxModal,
 }: ProposalStepperType) => {
-  const {data: dao, loading} = useDaoParam();
+  const {data: dao, isLoading} = useDaoParam();
   const {actions} = useActionsContext();
 
   const {t} = useTranslation();
@@ -46,7 +46,7 @@ const ProposalStepper: React.FC<ProposalStepperType> = ({
    *                    Render                     *
    *************************************************/
 
-  if (loading) {
+  if (isLoading) {
     return <Loading />;
   }
 

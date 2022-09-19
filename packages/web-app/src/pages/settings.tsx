@@ -30,7 +30,7 @@ import {PluginTypes} from 'hooks/usePluginClient';
 import {getDHMFromSeconds} from 'utils/date';
 
 const Settings: React.FC = () => {
-  const {data: daoId, loading} = useDaoParam();
+  const {data: daoId, isLoading} = useDaoParam();
   const {t} = useTranslation();
   const {open} = useGlobalModalContext();
   const {isMobile} = useScreen();
@@ -45,7 +45,7 @@ const Settings: React.FC = () => {
     daoDetails?.plugins[1].id as PluginTypes
   );
 
-  if (loading || detailsAreLoading || settingsAreLoading) {
+  if (isLoading || detailsAreLoading || settingsAreLoading) {
     return <Loading />;
   }
 

@@ -1,6 +1,9 @@
 import {useQuery} from '@apollo/client';
-import {ICreateProposalParams} from '@aragon/sdk-client';
-import React, {useCallback, useMemo, useState} from 'react';
+import {
+  ICreateProposalParams,
+  InstalledPluginListItem,
+} from '@aragon/sdk-client';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useFormContext} from 'react-hook-form';
 import {useTranslation} from 'react-i18next';
 import {generatePath, useNavigate} from 'react-router-dom';
@@ -11,12 +14,11 @@ import {useDaoParam} from 'hooks/useDaoParam';
 import {PluginTypes, usePluginClient} from 'hooks/usePluginClient';
 import {usePollGasFee} from 'hooks/usePollGasfee';
 import {useWallet} from 'hooks/useWallet';
-import {DAO_BY_ADDRESS} from 'queries/dao';
 import {TransactionState} from 'utils/constants';
 import {Governance} from 'utils/paths';
-import {client} from './apolloClient';
 import {useGlobalModalContext} from './globalModals';
 import {useNetwork} from './network';
+import {useDaoDetails} from 'hooks/useDaoDetails';
 
 type Props = {
   showTxModal: boolean;
@@ -34,25 +36,16 @@ const CreateProposalProvider: React.FC<Props> = ({
   const {t} = useTranslation();
   const {isOnWrongNetwork} = useWallet();
   const {open} = useGlobalModalContext();
+  const {data: dao, isLoading} = useDaoParam();
+  const {data: daoDetails, isLoading: daoDetailsLoading} = useDaoDetails(dao);
 
-  const {data: dao, loading} = useDaoParam();
+  const {id: pluginType, instanceAddress: pluginAddress} =
+    daoDetails?.plugins[0] || ({} as InstalledPluginListItem);
 
-  const {data, loading: daoDetailsLoading} = useQuery(DAO_BY_ADDRESS, {
-    variables: {id: dao},
-    client: client[network],
-  });
-
-  const {__typename: type, id: pluginAddress} = data?.dao.packages[0].pkg;
-
-  const pluginType: PluginTypes = useMemo(
-    () =>
-      type === 'WhitelistPackage'
-        ? 'addresslistvoting.dao.eth'
-        : 'erc20voting.dao.eth',
-    [type]
+  const pluginClient = usePluginClient(
+    pluginAddress,
+    pluginType as PluginTypes
   );
-
-  const pluginClient = usePluginClient(pluginAddress, pluginType);
 
   const [creationProcessState, setCreationProcessState] =
     useState<TransactionState>(TransactionState.WAITING);
@@ -62,6 +55,26 @@ const CreateProposalProvider: React.FC<Props> = ({
     [creationProcessState]
   );
 
+  const encodeActions = useMemo(() => {
+    const actions = getValues().actions;
+    // return actions?.map((action: Record<string, string>) => {
+    console.log('action', actions);
+    // if (action.name === 'withdraw_assets') {
+    // doesn't matter which client we use to encode actions, both are the same
+    // return pluginClient?.encode.actions.withdraw(
+    //   action.to,
+    //   BigInt(parseUnits(action.amount, 18).toBigInt()),
+    //   {
+    //     to: action.to,
+    //     token: action.tokenAddress,
+    //     amount: BigInt(parseUnits(action.amount, 18).toBigInt()),
+    //     reference: action.reference,
+    //   }
+    // );
+    // }
+    // });
+  }, [getValues]);
+
   // Because getValues does NOT get updated on each render, leaving this as
   // a function to be called when data is needed instead of a memoized value
   const getProposalCreationParams = useCallback((): ICreateProposalParams => {
@@ -70,6 +83,7 @@ const CreateProposalProvider: React.FC<Props> = ({
       'proposalSummary',
       'proposal',
       'links',
+      'actions',
     ]);
 
     return {
@@ -113,36 +127,13 @@ const CreateProposalProvider: React.FC<Props> = ({
     }
   };
 
-  const createVotingProposal = async () => {
+  const votingProposalIterator = useMemo(() => {
     if (!pluginClient) {
-      return Promise.reject(
-        new Error('ERC20 SDK client is not initialized correctly')
-      );
+      return new Error('ERC20 SDK client is not initialized correctly');
     }
 
     return pluginClient.methods.createProposal(getProposalCreationParams());
-  };
-
-  // TODO: add action encoding with new version of sdk
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const encodeActions = () => {
-    const actions = getValues().actions;
-    return actions.map((action: Record<string, string>) => {
-      if (action.name === 'withdraw_assets') {
-        // doesn't matter which client we use to encode actions, both are the same
-        // return pluginClient?.encode.actions.withdraw(
-        //   action.to,
-        //   BigInt(parseUnits(action.amount, 18).toBigInt()),
-        //   {
-        //     to: action.to,
-        //     token: action.tokenAddress,
-        //     amount: BigInt(parseUnits(action.amount, 18).toBigInt()),
-        //     reference: action.reference,
-        //   }
-        // );
-      }
-    });
-  };
+  }, [getProposalCreationParams, pluginClient]);
 
   const handlePublishProposal = async () => {
     if (creationProcessState === TransactionState.SUCCESS) {
@@ -159,7 +150,7 @@ const CreateProposalProvider: React.FC<Props> = ({
     setCreationProcessState(TransactionState.LOADING);
 
     try {
-      await createVotingProposal();
+      // await createVotingProposal();
       setCreationProcessState(TransactionState.SUCCESS);
     } catch (error) {
       console.error(error);
@@ -171,7 +162,7 @@ const CreateProposalProvider: React.FC<Props> = ({
    *                    Render                     *
    *************************************************/
 
-  if (loading || daoDetailsLoading) {
+  if (isLoading || daoDetailsLoading) {
     return <Loading />;
   }
 

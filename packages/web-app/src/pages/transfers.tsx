@@ -20,7 +20,7 @@ import {useTransactionDetailContext} from 'context/transactionDetail';
 const Transfers: React.FC = () => {
   const {open} = useGlobalModalContext();
   const {t, i18n} = useTranslation();
-  const {data: dao, loading} = useDaoParam();
+  const {data: dao, isLoading} = useDaoParam();
   const {handleTransferClicked} = useTransactionDetailContext();
 
   const {data: categorizedTransfers, totalTransfers} =
@@ -78,7 +78,7 @@ const Transfers: React.FC = () => {
     ]
   );
 
-  if (loading) {
+  if (isLoading) {
     return <Loading />;
   }
 

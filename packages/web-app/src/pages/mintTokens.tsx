@@ -24,7 +24,7 @@ import {useDaoParam} from 'hooks/useDaoParam';
 import {Community} from 'utils/paths';
 
 const MintToken: React.FC = () => {
-  const {data: dao, loading} = useDaoParam();
+  const {data: dao, isLoading} = useDaoParam();
 
   const {t} = useTranslation();
   const {network} = useNetwork();
@@ -40,7 +40,7 @@ const MintToken: React.FC = () => {
    *                    Render                     *
    *************************************************/
 
-  if (loading) {
+  if (isLoading) {
     return <Loading />;
   }
 

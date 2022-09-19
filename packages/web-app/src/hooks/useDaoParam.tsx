@@ -19,7 +19,11 @@ export function useDaoParam() {
   const {network} = useNetwork();
 
   // NOTE At this point, daoParam will always be defined.
-  const {data, error, loading} = useQuery(DAO_BY_ADDRESS, {
+  const {
+    data,
+    error,
+    loading: isLoading,
+  } = useQuery(DAO_BY_ADDRESS, {
     variables: {id: dao ? dao : ''},
     client: client[network],
     fetchPolicy: 'cache-and-network',
@@ -34,12 +38,12 @@ export function useDaoParam() {
     if (!client[network])
       navigate(NotFound, {replace: true, state: {incorrectDao: dao}});
 
-    if (loading) {
+    if (isLoading) {
       return;
     } else if (error || !data?.dao?.id) {
       navigate(NotFound, {replace: true, state: {incorrectDao: dao}});
     }
-  }, [loading, dao, network]); // eslint-disable-line
+  }, [isLoading, dao, network]); // eslint-disable-line
 
-  return {data: data?.dao?.id, error, loading};
+  return {data: data?.dao?.id, error, isLoading};
 }

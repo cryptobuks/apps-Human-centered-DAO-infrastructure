@@ -71,7 +71,7 @@ const Proposal: React.FC = () => {
   const {network} = useNetwork();
   const {address, isConnected, isOnWrongNetwork} = useWallet();
 
-  const {data: daoId, loading: paramIsLoading} = useDaoParam();
+  const {data: daoId, isLoading: paramIsLoading} = useDaoParam();
   const {data: daoDetails, isLoading: detailsAreLoading} = useDaoDetails(
     daoId || ''
   );

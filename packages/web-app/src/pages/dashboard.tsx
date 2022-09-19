@@ -23,7 +23,7 @@ const Dashboard: React.FC = () => {
   const {network} = useNetwork();
   const {isDesktop} = useScreen();
 
-  const {data: daoId, loading: daoParamLoading} = useDaoParam();
+  const {data: daoId, isLoading: daoParamLoading} = useDaoParam();
 
   const {transfers, totalAssetValue} = useDaoVault(daoId!);
   const {data: dao, isLoading: detailsAreLoading} = useDaoDetails(daoId!);

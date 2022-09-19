@@ -13,7 +13,7 @@ import {Loading} from 'components/temporary';
 import {useDaoParam} from 'hooks/useDaoParam';
 
 const Tokens: React.FC = () => {
-  const {data: dao, loading} = useDaoParam();
+  const {data: dao, isLoading} = useDaoParam();
 
   const {t} = useTranslation();
   const {open} = useGlobalModalContext();
@@ -28,7 +28,7 @@ const Tokens: React.FC = () => {
 
   const filteredTokens: VaultToken[] = filterTokens(tokens, searchTerm);
 
-  if (loading) {
+  if (isLoading) {
     return <Loading />;
   }
 

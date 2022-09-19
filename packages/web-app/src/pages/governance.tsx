@@ -23,7 +23,7 @@ import NoProposals from 'public/noProposals.svg';
 import {erc20VotingProposals_erc20VotingProposals} from 'queries/__generated__/erc20VotingProposals';
 
 const Governance: React.FC = () => {
-  const {data: dao, loading} = useDaoParam();
+  const {data: dao, isLoading} = useDaoParam();
   const {data: daoDetails, isLoading: detailsAreLoading} = useDaoDetails(dao!);
 
   const {data: proposals, isLoading: proposalsAreLoading} = useProposals(
@@ -51,7 +51,7 @@ const Governance: React.FC = () => {
     );
   }
 
-  if (proposalsAreLoading || detailsAreLoading || loading) {
+  if (proposalsAreLoading || detailsAreLoading || isLoading) {
     return <Loading />;
   }
 

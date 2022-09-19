@@ -9,7 +9,7 @@ import {CreateProposalProvider} from 'context/createProposal';
 import ProposalStepper from 'containers/proposalStepper';
 
 const NewProposal: React.FC = () => {
-  const {data: dao, loading} = useDaoParam();
+  const {data: dao, isLoading} = useDaoParam();
   const [showTxModal, setShowTxModal] = useState(false);
 
   const formMethods = useForm({
@@ -24,7 +24,7 @@ const NewProposal: React.FC = () => {
    *                    Render                     *
    *************************************************/
 
-  if (loading) {
+  if (isLoading) {
     return <Loading />;
   }
 

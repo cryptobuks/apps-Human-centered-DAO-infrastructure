@@ -41,7 +41,7 @@ const EditSettings: React.FC = () => {
   const {dao} = useParams();
   const {setValue} = useFormContext();
   const {breadcrumbs, icon, tag} = useMappedBreadcrumbs();
-  const {data: daoId, loading: paramAreLoading} = useDaoParam();
+  const {data: daoId, isLoading: paramAreLoading} = useDaoParam();
   const {data: daoDetails, isLoading: detailsAreLoading} = useDaoDetails(
     daoId!
   );

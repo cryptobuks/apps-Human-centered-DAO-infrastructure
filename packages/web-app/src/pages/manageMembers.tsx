@@ -21,7 +21,7 @@ import AddAddresses from 'containers/actionBuilder/addAddresses';
 import RemoveAddresses from 'containers/actionBuilder/removeAddresses';
 
 const ManageMembers: React.FC = () => {
-  const {data: dao, loading} = useDaoParam();
+  const {data: dao, isLoading} = useDaoParam();
 
   const {t} = useTranslation();
   const {network} = useNetwork();
@@ -37,7 +37,7 @@ const ManageMembers: React.FC = () => {
    *                    Render                     *
    *************************************************/
 
-  if (loading) {
+  if (isLoading) {
     return <Loading />;
   }
 

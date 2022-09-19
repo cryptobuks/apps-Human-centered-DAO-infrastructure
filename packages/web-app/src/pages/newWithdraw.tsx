@@ -79,7 +79,7 @@ export const defaultValues = {
 
 const NewWithdraw: React.FC = () => {
   const {t} = useTranslation();
-  const {data: dao, loading} = useDaoParam();
+  const {data: dao, isLoading} = useDaoParam();
   const {network} = useNetwork();
   const [showTxModal, setShowTxModal] = useState(false);
 
@@ -140,7 +140,7 @@ const NewWithdraw: React.FC = () => {
    *                    Render                     *
    *************************************************/
 
-  if (loading) {
+  if (isLoading) {
     return <Loading />;
   }
 

@@ -83,7 +83,8 @@ const CreateProposalProvider: React.FC<Props> = ({
       'proposalSummary',
       'proposal',
       'links',
-      'actions',
+      'startDate',
+      'endDate',
     ]);
 
     return {

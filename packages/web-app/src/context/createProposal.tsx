@@ -1,7 +1,7 @@
-import {useQuery} from '@apollo/client';
 import {
   ICreateProposalParams,
   InstalledPluginListItem,
+  ProposalCreationSteps,
 } from '@aragon/sdk-client';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useFormContext} from 'react-hook-form';
@@ -19,6 +19,7 @@ import {Governance} from 'utils/paths';
 import {useGlobalModalContext} from './globalModals';
 import {useNetwork} from './network';
 import {useDaoDetails} from 'hooks/useDaoDetails';
+import {getCanonicalUtcOffset} from 'utils/date';
 
 type Props = {
   showTxModal: boolean;
@@ -55,6 +56,50 @@ const CreateProposalProvider: React.FC<Props> = ({
     [creationProcessState]
   );
 
+  // Because getValues does NOT get updated on each render, leaving this as
+  // a function to be called when data is needed instead of a memoized value
+  const getProposalCreationParams = useCallback((): ICreateProposalParams => {
+    const [
+      title,
+      summary,
+      description,
+      resources,
+      startDate,
+      startTime,
+      startUtc,
+      endDate,
+      endTime,
+      endUtc,
+    ] = getValues([
+      'proposalTitle',
+      'proposalSummary',
+      'proposal',
+      'links',
+      'startDate',
+      'startTime',
+      'startUtc',
+      'endDate',
+      'endTime',
+      'endUtc',
+    ]);
+
+    return {
+      pluginAddress,
+      metadata: {
+        title,
+        summary,
+        description,
+        resources,
+      },
+      startDate: new Date(
+        `${startDate}T${startTime}:00${getCanonicalUtcOffset(startUtc)}`
+      ),
+      endDate: new Date(
+        `${endDate}T${endTime}:00${getCanonicalUtcOffset(endUtc)}`
+      ),
+    };
+  }, [getValues, pluginAddress]);
+
   const encodeActions = useMemo(() => {
     const actions = getValues().actions;
     // return actions?.map((action: Record<string, string>) => {
@@ -74,29 +119,6 @@ const CreateProposalProvider: React.FC<Props> = ({
     // }
     // });
   }, [getValues]);
-
-  // Because getValues does NOT get updated on each render, leaving this as
-  // a function to be called when data is needed instead of a memoized value
-  const getProposalCreationParams = useCallback((): ICreateProposalParams => {
-    const [title, summary, description, resources] = getValues([
-      'proposalTitle',
-      'proposalSummary',
-      'proposal',
-      'links',
-      'startDate',
-      'endDate',
-    ]);
-
-    return {
-      pluginAddress,
-      metadata: {
-        title,
-        summary,
-        description,
-        resources,
-      },
-    };
-  }, [getValues, pluginAddress]);
 
   const estimateCreationFees = useCallback(async () => {
     if (!pluginClient) {
@@ -128,15 +150,15 @@ const CreateProposalProvider: React.FC<Props> = ({
     }
   };
 
-  const votingProposalIterator = useMemo(() => {
+  const handlePublishProposal = async () => {
     if (!pluginClient) {
       return new Error('ERC20 SDK client is not initialized correctly');
     }
 
-    return pluginClient.methods.createProposal(getProposalCreationParams());
-  }, [getProposalCreationParams, pluginClient]);
+    const proposalIterator = pluginClient.methods.createProposal(
+      getProposalCreationParams()
+    );
 
-  const handlePublishProposal = async () => {
     if (creationProcessState === TransactionState.SUCCESS) {
       handleCloseModal();
       return;
@@ -149,13 +171,20 @@ const CreateProposalProvider: React.FC<Props> = ({
     }
 
     setCreationProcessState(TransactionState.LOADING);
-
-    try {
-      // await createVotingProposal();
-      setCreationProcessState(TransactionState.SUCCESS);
-    } catch (error) {
-      console.error(error);
-      setCreationProcessState(TransactionState.ERROR);
+    for await (const step of proposalIterator) {
+      try {
+        switch (step.key) {
+          case ProposalCreationSteps.CREATING:
+            console.log(step.txHash);
+            break;
+          case ProposalCreationSteps.DONE:
+            setCreationProcessState(TransactionState.SUCCESS);
+            break;
+        }
+      } catch (error) {
+        console.error(error);
+        setCreationProcessState(TransactionState.ERROR);
+      }
     }
   };
 
@@ -174,7 +203,8 @@ const CreateProposalProvider: React.FC<Props> = ({
         state={creationProcessState || TransactionState.WAITING}
         isOpen={showTxModal}
         onClose={handleCloseModal}
-        callback={handlePublishProposal}
+        // callback={handlePublishProposal}
+        callback={() => getProposalCreationParams()}
         closeOnDrag={creationProcessState !== TransactionState.LOADING}
         maxFee={maxFee}
         averageFee={averageFee}

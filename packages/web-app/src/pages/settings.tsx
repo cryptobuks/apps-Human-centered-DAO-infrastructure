@@ -41,8 +41,8 @@ const Settings: React.FC = () => {
     daoId!
   );
   const {data: daoSettings, isLoading: settingsAreLoading} = usePluginSettings(
-    daoDetails?.plugins[1].instanceAddress as string,
-    daoDetails?.plugins[1].id as PluginTypes
+    daoDetails?.plugins[0].instanceAddress as string,
+    daoDetails?.plugins[0].id as PluginTypes
   );
 
   if (loading || detailsAreLoading || settingsAreLoading) {

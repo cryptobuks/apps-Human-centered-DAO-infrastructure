@@ -1,4 +1,4 @@
-import {DaoDetails, DaoSortBy} from '@aragon/sdk-client';
+import {DaoListItem, DaoSortBy} from '@aragon/sdk-client';
 import {useEffect, useState} from 'react';
 
 import {ExploreFilter} from 'containers/daoExplorer';
@@ -21,8 +21,8 @@ import {useClient} from './useClient';
 export function useDaos(
   useCase: ExploreFilter,
   count: number
-): HookData<DaoDetails[]> {
-  const [data, setData] = useState<DaoDetails[]>([] as DaoDetails[]);
+): HookData<DaoListItem[]> {
+  const [data, setData] = useState<DaoListItem[]>([] as DaoListItem[]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error>();
   const {client} = useClient();

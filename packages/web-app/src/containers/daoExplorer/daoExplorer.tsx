@@ -74,7 +74,8 @@ export const DaoExplorer = () => {
             <DaoCard
               name={dao.metadata.name}
               logo={dao.metadata.avatar}
-              description={dao.metadata.description}
+              // TODO: replace with -> description={dao.metadata.description}
+              description="This is a DAO."
               chainId={4}
               daoType={
                 (dao?.plugins[0].id as PluginTypes) === 'erc20voting.dao.eth'

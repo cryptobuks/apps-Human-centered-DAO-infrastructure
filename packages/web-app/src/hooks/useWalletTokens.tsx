@@ -165,7 +165,7 @@ export function useWalletTokens(): HookData<AssetBalance[]> {
               return {
                 type: 'native',
                 balance: BigInt(_balance[0]),
-                lastUpdate: new Date(),
+                updateDate: new Date(),
               };
             } else {
               return {
@@ -175,7 +175,7 @@ export function useWalletTokens(): HookData<AssetBalance[]> {
                 symbol: _balance[1].symbol,
                 decimals: _balance[1].decimals,
                 balance: BigInt(_balance[0]),
-                lastUpdate: new Date(),
+                updateDate: new Date(),
               };
             }
           })

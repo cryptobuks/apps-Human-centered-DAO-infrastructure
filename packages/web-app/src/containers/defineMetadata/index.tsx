@@ -12,6 +12,7 @@ import {Controller, FieldError, useFormContext} from 'react-hook-form';
 
 import AddLinks from 'components/addLinks';
 import {isOnlyWhitespace} from 'utils/library';
+import {URL_PATTERN} from 'utils/constants';
 
 const DAO_LOGO = {
   maxDimension: 2400,
@@ -99,7 +100,15 @@ const DefineMetadata: React.FC = () => {
           name="daoLogo"
           control={control}
           render={({field: {value, onChange}, fieldState: {error}}) => {
-            const preview = value ? URL.createObjectURL(value) : '';
+            let preview;
+
+            // in case url does not need to be created
+            if (URL_PATTERN.test(value)) {
+              preview = value;
+            } else {
+              preview = value ? URL.createObjectURL(value) : '';
+            }
+
             return (
               <>
                 <LogoContainer>

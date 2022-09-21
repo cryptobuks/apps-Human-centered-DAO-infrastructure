@@ -97,6 +97,7 @@ const CreateProposalProvider: React.FC<Props> = ({
       endDate: new Date(
         `${endDate}T${endTime}:00${getCanonicalUtcOffset(endUtc)}`
       ),
+      actions: [],
     };
   }, [getValues, pluginAddress]);
 
@@ -203,8 +204,7 @@ const CreateProposalProvider: React.FC<Props> = ({
         state={creationProcessState || TransactionState.WAITING}
         isOpen={showTxModal}
         onClose={handleCloseModal}
-        // callback={handlePublishProposal}
-        callback={() => getProposalCreationParams()}
+        callback={handlePublishProposal}
         closeOnDrag={creationProcessState !== TransactionState.LOADING}
         maxFee={maxFee}
         averageFee={averageFee}

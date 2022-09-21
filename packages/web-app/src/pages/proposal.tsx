@@ -55,7 +55,6 @@ import {decodeWithdrawToAction} from 'utils/library';
 
 // TODO: @Sepehr Please assign proper tags on action decoding
 const PROPOSAL_TAGS = ['Finance', 'Withdraw'];
-const TEMP_VOTING_POWER = 1600;
 
 const Proposal: React.FC = () => {
   const {t} = useTranslation();
@@ -482,6 +481,7 @@ function getTerminalProps(proposal: DetailedProposal) {
     const ptcResults = getErc20VotersAndParticipation(
       proposal.votes,
       proposal.token,
+      proposal.totalVotingWeight,
       proposal.usedVotingWeight
     );
     voters = ptcResults.voters;
@@ -493,13 +493,13 @@ function getTerminalProps(proposal: DetailedProposal) {
     results = getErc20Results(
       proposal.result,
       proposal.token.decimals,
-      proposal.usedVotingWeight
+      proposal.totalVotingWeight
     );
 
     // min approval
     approval = getErc20MinimumApproval(
       proposal.settings.minSupport,
-      proposal.usedVotingWeight,
+      proposal.totalVotingWeight,
       proposal.token
     );
 
@@ -509,8 +509,7 @@ function getTerminalProps(proposal: DetailedProposal) {
     // voters
     const ptcResults = getWhitelistVoterParticipation(
       proposal.votes,
-      // TODO: add proposal.votingPower when on SDK,
-      TEMP_VOTING_POWER
+      proposal.totalVotingWeight
     );
     voters = ptcResults.voters;
 
@@ -518,17 +517,12 @@ function getTerminalProps(proposal: DetailedProposal) {
     participation = ptcResults.summary;
 
     // results
-    results = getWhitelistResults(
-      proposal.result,
-      // TODO: add proposal.votingPower when on SDK,
-      TEMP_VOTING_POWER
-    );
+    results = getWhitelistResults(proposal.result, proposal.totalVotingWeight);
 
     // approval
     approval = getWhitelistMinimumApproval(
       proposal.settings.minSupport,
-      // TODO: add proposal.votingPower when on SDK,
-      TEMP_VOTING_POWER
+      proposal.totalVotingWeight
     );
 
     // strategy

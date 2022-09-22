@@ -24,9 +24,9 @@ import {formatUnits} from './library';
 import {abbreviateTokenAmount} from './tokens';
 
 const MappedVotes: {[key in VoteValues]: VoterType['option']} = {
-  1: 'Yes',
-  2: 'No',
-  3: 'Abstain',
+  1: 'Abstain',
+  2: 'Yes',
+  3: 'No',
 };
 
 // this type guard will need to evolve when there are more types
@@ -201,7 +201,7 @@ export function getErc20Results(
         ).toString()
       ),
       percentage: parseFloat(
-        Big(Number(no)).mul(100).div(Number(totalVotingWeight)).toFixed(2)
+        Big(Number(yes)).mul(100).div(Number(totalVotingWeight)).toFixed(2)
       ),
     },
     no: {
@@ -219,7 +219,7 @@ export function getErc20Results(
         ).toString()
       ),
       percentage: parseFloat(
-        Big(Number(no)).mul(100).div(Number(totalVotingWeight)).toFixed(2)
+        Big(Number(abstain)).mul(100).div(Number(totalVotingWeight)).toFixed(2)
       ),
     },
   };

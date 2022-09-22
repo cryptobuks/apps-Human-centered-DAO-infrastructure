@@ -28,7 +28,7 @@ export const usePluginClient = (
   const [pluginClient, setPluginClient] = useState<
     ClientErc20 | ClientAddressList | undefined
   >(undefined);
-  const {client, context} = useClient();
+  const {client, context, contextParams} = useClient();
 
   useEffect(() => {
     if (!client || !context) {
@@ -40,13 +40,17 @@ export const usePluginClient = (
       switch (pluginType) {
         case 'erc20voting.dao.eth':
           setPluginClient(
-            new ClientErc20(ContextPlugin.fromContext(context, pluginAddress))
+            new ClientErc20(
+              //TODO: replace when method fixed on SDK ContextPlugin.fromContext(context, pluginAddress)
+              new ContextPlugin({...contextParams, pluginAddress})
+            )
           );
           break;
         case 'addresslistvoting.dao.eth':
           setPluginClient(
             new ClientAddressList(
-              ContextPlugin.fromContext(context, pluginAddress)
+              //TODO: replace when method fixed on SDK ContextPlugin.fromContext(context, pluginAddress)
+              new ContextPlugin({...contextParams, pluginAddress})
             )
           );
           break;
@@ -54,7 +58,7 @@ export const usePluginClient = (
           throw new Error('The requested sdk type is invalid');
       }
     }
-  }, [pluginType, pluginAddress, client, context]);
+  }, [client, context, contextParams, pluginAddress, pluginType]);
 
   return pluginClient;
 };

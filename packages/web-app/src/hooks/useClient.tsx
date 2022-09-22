@@ -11,6 +11,9 @@ import {useWallet} from './useWallet';
 interface ClientContext {
   client?: Client;
   context?: SdkContext;
+
+  // TODO: remove when ContextPlugin.fromContext function is fixed in SDK
+  contextParams?: ContextParams;
 }
 
 const UseClientContext = createContext<ClientContext>({} as ClientContext);
@@ -29,6 +32,9 @@ export const UseClientProvider = ({children}: {children: ReactNode}) => {
   const {signer} = useWallet();
   const [client, setClient] = useState<Client>();
   const [context, setContext] = useState<SdkContext>();
+
+  // TODO: remove when ContextPlugin.fromContext function is fixed in SDK
+  const [contextParams, setContextParams] = useState<ContextParams>();
 
   useEffect(() => {
     const alchemyApiAddress = import.meta.env
@@ -60,11 +66,15 @@ export const UseClientProvider = ({children}: {children: ReactNode}) => {
 
     setClient(new Client(sdkContext));
     setContext(sdkContext);
+
+    // TODO: remove when ContextPlugin.fromContext function is fixed in SDK
+    setContextParams(contextParams);
   }, [signer]);
 
   const value: ClientContext = {
-    client: client,
-    context: context,
+    client,
+    context,
+    contextParams,
   };
 
   return (

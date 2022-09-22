@@ -16,6 +16,8 @@ import ModalBottomSheetSwitcher from 'components/modalBottomSheetSwitcher';
 import {CHAIN_METADATA, TransferTypes} from 'utils/constants';
 import {abbreviateTokenAmount} from 'utils/tokens';
 import {useTransactionDetailContext} from 'context/transactionDetail';
+import {trackEvent} from 'services/analytics';
+import {useParams} from 'react-router-dom';
 
 type TransactionDetailProps = {
   daoName: string;
@@ -24,6 +26,7 @@ type TransactionDetailProps = {
 const TransactionDetail: React.FC<TransactionDetailProps> = ({daoName}) => {
   const {t} = useTranslation();
   const {network} = useNetwork();
+  const {dao} = useParams();
 
   const {isOpen, transfer, onClose} = useTransactionDetailContext();
 
@@ -70,7 +73,17 @@ const TransactionDetail: React.FC<TransactionDetailProps> = ({daoName}) => {
         )}
 
         <div>
-          <a href={transactionUrl} target="_blank" rel="noreferrer">
+          <a
+            href={transactionUrl}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() =>
+              trackEvent('finance_viewInBlockExplorer_clicked', {
+                transaction_hash: transfer.id,
+                dao_address: dao,
+              })
+            }
+          >
             <ListItemAction
               title={t('transactionDetail.viewTransaction')}
               iconRight={<IconLinkExternal />}

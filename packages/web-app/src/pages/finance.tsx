@@ -16,6 +16,8 @@ import {useDaoVault} from 'hooks/useDaoVault';
 import {useDaoParam} from 'hooks/useDaoParam';
 import {useGlobalModalContext} from 'context/globalModals';
 import {useTransactionDetailContext} from 'context/transactionDetail';
+import {trackEvent} from 'services/analytics';
+import {useParams} from 'react-router-dom';
 
 const Finance: React.FC = () => {
   const {t} = useTranslation();
@@ -24,6 +26,7 @@ const Finance: React.FC = () => {
   const {handleTransferClicked} = useTransactionDetailContext();
   const {tokens, totalAssetChange, totalAssetValue, transfers} =
     useDaoVault(daoId);
+  const {dao} = useParams();
 
   sortTokens(tokens, 'treasurySharePercentage');
 
@@ -49,7 +52,10 @@ const Finance: React.FC = () => {
         }).format(totalAssetChange)}
         sign={Math.sign(totalAssetChange)}
         timePeriod="24h" // temporarily hardcoded
-        onClick={open}
+        onClick={() => {
+          trackEvent('finance_newTransferBtn_clicked', {dao_address: dao});
+          open();
+        }}
       >
         <div className={'h-4'} />
         <TokenSectionWrapper title={t('finance.tokenSection')}>

@@ -24,6 +24,7 @@ import {usePollGasFee} from 'hooks/usePollGasfee';
 import {useGlobalModalContext} from './globalModals';
 import {useReactiveVar} from '@apollo/client';
 import {pendingDeposits} from './apolloClient';
+import {trackEvent} from 'services/analytics';
 
 interface IDepositContextType {
   handleOpenModal: () => void;
@@ -39,7 +40,7 @@ const DepositProvider = ({children}: {children: ReactNode}) => {
   const {dao} = useParams();
   const navigate = useNavigate();
   const {network} = useNetwork();
-  const {isOnWrongNetwork} = useWallet();
+  const {isOnWrongNetwork, provider} = useWallet();
 
   const [showModal, setShowModal] = useState<boolean>(false);
   const {open, close, isNetworkOpen} = useGlobalModalContext();
@@ -239,14 +240,27 @@ const DepositProvider = ({children}: {children: ReactNode}) => {
           // @ts-ignore
           pendingDeposits(depositTxs);
           localStorage.setItem('pendingDeposits', JSON.stringify(depositTxs));
+          trackEvent('newDeposit_transaction_signed', {
+            network,
+            wallet_provider: provider,
+          });
         }
       }
 
       setDepositState(TransactionState.SUCCESS);
       console.log(transactionHash);
+      trackEvent('newDeposit_transaction_success', {
+        network,
+        wallet_provider: provider,
+      });
     } catch (error) {
       console.error(error);
       setDepositState(TransactionState.ERROR);
+      trackEvent('newDeposit_transaction_failed', {
+        network,
+        error,
+        wallet_provider: provider,
+      });
     }
   };
 

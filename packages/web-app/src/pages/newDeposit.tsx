@@ -19,6 +19,7 @@ import {useNetwork} from 'context/network';
 import {useDaoParam} from 'hooks/useDaoParam';
 import {Loading} from 'components/temporary';
 import {DepositProvider} from 'context/deposit';
+import {trackEvent} from 'services/analytics';
 
 export type DepositFormData = TokenFormData & {
   // Deposit data
@@ -116,6 +117,15 @@ const NewDeposit: React.FC = () => {
             wizardTitle={t('newDeposit.configureDeposit')}
             wizardDescription={t('newDeposit.configureDepositSubtitle')}
             isNextButtonDisabled={!formMethods.formState.isValid}
+            onNextButtonClicked={next => {
+              trackEvent('newDeposit_continueBtn_clicked', {
+                dao_address: dao,
+                token_address: formMethods.getValues('tokenAddress'),
+                amount: formMethods.getValues('amount'),
+                reference: formMethods.getValues('reference'),
+              });
+              next();
+            }}
           >
             <DepositForm />
           </Step>

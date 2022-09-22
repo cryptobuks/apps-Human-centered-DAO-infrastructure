@@ -17,6 +17,8 @@ import {useFormStep} from 'components/fullScreenStepper';
 import {useDepositDao} from 'context/deposit';
 import styled from 'styled-components';
 import {abbreviateTokenAmount} from 'utils/tokens';
+import {trackEvent} from 'services/analytics';
+import {useParams} from 'react-router-dom';
 
 const ReviewDeposit: React.FC = () => {
   const {t} = useTranslation();
@@ -83,6 +85,8 @@ export const CustomFooter = () => {
   const {prev} = useFormStep();
   const {t} = useTranslation();
   const {handleOpenModal} = useDepositDao();
+  const {dao} = useParams();
+  const {getValues} = useFormContext();
 
   return (
     <FormFooter>
@@ -96,7 +100,15 @@ export const CustomFooter = () => {
       <ButtonText
         label={t('labels.submitDeposit')}
         size="large"
-        onClick={() => handleOpenModal()}
+        onClick={() => {
+          trackEvent('newDeposit_SubmitDeposit_clicked', {
+            dao_address: dao,
+            token_address: getValues('tokenAddress'),
+            amount: getValues('amount'),
+            reference: getValues('reference'),
+          });
+          handleOpenModal();
+        }}
         iconRight={<IconChevronRight />}
       />
     </FormFooter>

@@ -4,6 +4,9 @@ import {useEffect, useState} from 'react';
 
 import {HookData} from 'utils/types';
 import {useClient} from './useClient';
+import {useReactiveVar} from '@apollo/client';
+
+import {pendingDeposits} from 'context/apolloClient';
 
 export const useDaoTransfers = (
   daoAddressOrEns: Address
@@ -16,6 +19,7 @@ export const useDaoTransfers = (
   });
   const [error, setError] = useState<Error>();
   const [isLoading, setIsLoading] = useState(false);
+  const pendingDepositsTxs = useReactiveVar(pendingDeposits);
 
   useEffect(() => {
     async function getTransfers() {
@@ -23,7 +27,34 @@ export const useDaoTransfers = (
         setIsLoading(true);
 
         const transfers = await client?.methods.getTransfers(daoAddressOrEns);
-        if (transfers) setData(transfers);
+        if (transfers) {
+          if (pendingDepositsTxs.length > 0) {
+            for (let i = 0; i < pendingDepositsTxs.length; ) {
+              const tx = pendingDepositsTxs[i];
+
+              for (let j = 0; j < transfers.deposits.length; j++) {
+                const deposit = transfers.deposits[j];
+                if (deposit.transactionId === tx.transactionId) {
+                  pendingDepositsTxs.splice(i, 1);
+                  break;
+                }
+                if (j === transfers.deposits.length - 1) {
+                  i++;
+                }
+              }
+            }
+
+            localStorage.setItem(
+              'pendingDeposits',
+              JSON.stringify(pendingDepositsTxs)
+            );
+          }
+
+          setData({
+            ...transfers,
+            deposits: [...pendingDepositsTxs, ...transfers.deposits],
+          });
+        }
       } catch (error) {
         console.error(error);
         setError(error as Error);
@@ -33,7 +64,7 @@ export const useDaoTransfers = (
     }
 
     getTransfers();
-  }, [client?.methods, daoAddressOrEns]);
+  }, [client?.methods, daoAddressOrEns, pendingDepositsTxs]);
 
   return {data, error, isLoading};
 };

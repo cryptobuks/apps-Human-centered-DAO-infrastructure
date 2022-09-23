@@ -111,13 +111,12 @@ function mapToDaoTransfers(
         sender: transfer.from,
         transferType: TransferTypes.Deposit,
         id: transfer.transactionId,
-        transferDate: `${formatDate(
-          transfer.date.getTime() / 1000,
-          'relative'
-        )}`,
-        transferTimestamp: transfer.date.getTime(),
+        transferDate: transfer.date
+          ? `${formatDate(transfer.date.getTime() / 1000, 'relative')}`
+          : i18n.t('labels.pendingTransaction'),
+        transferTimestamp: transfer.date?.getTime(),
         usdValue: '',
-        isPending: false,
+        isPending: !transfer.date,
         reference: transfer.reference,
         transaction: transfer.transactionId,
         tokenImgUrl: '',
@@ -150,7 +149,7 @@ function mapToDaoTransfers(
         transferType: TransferTypes.Withdraw,
         to: transfer.to,
         proposalId: transfer.transactionId,
-        transferTimestamp: transfer.date.getTime(),
+        transferTimestamp: transfer.date?.getTime(),
         transferDate: `${formatDate(
           transfer.date.getTime() / 1000,
           'relative'

@@ -1,15 +1,16 @@
-import React, {useState} from 'react';
-import {DaoCard} from 'components/daoCard';
-import {useTranslation} from 'react-i18next';
-import styled from 'styled-components';
-import {useWallet} from 'hooks/useWallet';
 import {
   ButtonGroup,
+  ButtonText,
   IconChevronDown,
   Option,
-  ButtonText,
 } from '@aragon/ui-components';
+import {DaoCard} from 'components/daoCard';
 import {useDaos} from 'hooks/useDaos';
+import {PluginTypes} from 'hooks/usePluginClient';
+import {useWallet} from 'hooks/useWallet';
+import React, {useState} from 'react';
+import {useTranslation} from 'react-i18next';
+import styled from 'styled-components';
 
 const EXPLORE_FILTER = ['favourite', 'newest', 'popular'] as const;
 
@@ -30,7 +31,7 @@ export const DaoExplorer = () => {
   const [filterValue, setFilterValue] = useState<ExploreFilter>(
     isConnected ? 'favourite' : 'popular'
   );
-  const {data} = useDaos(filterValue);
+  const {data} = useDaos(filterValue, showCount);
 
   const handleShowMoreClick = () => {
     setShowCount(prev => prev + PAGE_SIZE);
@@ -71,11 +72,15 @@ export const DaoExplorer = () => {
         <CardsWrapper>
           {data.slice(0, showCount).map((dao, index) => (
             <DaoCard
-              name={dao.name}
-              logo={dao.logo}
-              description={dao.description}
-              chainId={dao.chainId}
-              daoType={dao.daoType}
+              name={dao.metadata.name}
+              logo={dao.metadata.avatar}
+              description={dao.metadata.description}
+              chainId={4}
+              daoType={
+                (dao?.plugins[0].id as PluginTypes) === 'erc20voting.dao.eth'
+                  ? 'token-based'
+                  : 'wallet-based'
+              }
               key={index}
             />
           ))}

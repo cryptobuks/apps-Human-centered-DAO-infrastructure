@@ -58,28 +58,31 @@ const CreateProposalProvider: React.FC<Props> = ({
     useState<TransactionState>(TransactionState.WAITING);
 
   const shouldPoll = useMemo(
-    () => creationProcessState === TransactionState.WAITING,
-    [creationProcessState]
+    () => creationProcessState === TransactionState.WAITING && showTxModal,
+    [creationProcessState, showTxModal]
   );
 
   const encodeActions = useCallback(() => {
     const actionsForm = getValues().actions;
+    // return an empty array for undefined clients
+    if (!client) return Promise.resolve([] as DaoAction[]);
+
     const promises = actions?.map((action: ActionItem, index: number) => {
-      if (action.name === 'withdraw_assets') {
-        return (
-          client?.encoding.withdrawAction(dao, {
+      switch (action.name) {
+        case 'withdraw_assets':
+          return client.encoding.withdrawAction(dao, {
             recipientAddress: actionsForm[index].to,
             amount: BigInt(
               Number(actionsForm[index].amount) * Math.pow(10, 18)
             ),
             tokenAddress: actionsForm[index].tokenAddress,
-          }) || Promise.resolve({} as DaoAction) // In case that the return was undefined
-        );
-        // TODO: Else Condition will change by adding other actions
-      } else return Promise.resolve({} as DaoAction);
+          });
+        default:
+          return Promise.resolve({} as DaoAction);
+      }
     });
     return Promise.all(promises);
-  }, [actions, client?.encoding, dao, getValues]);
+  }, [actions, client, dao, getValues]);
 
   // Because getValues does NOT get updated on each render, leaving this as
   // a function to be called when data is needed instead of a memoized value

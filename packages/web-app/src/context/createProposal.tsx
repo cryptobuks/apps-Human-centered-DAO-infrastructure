@@ -3,7 +3,7 @@ import {
   InstalledPluginListItem,
   ProposalCreationSteps,
 } from '@aragon/sdk-client';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useFormContext} from 'react-hook-form';
 import {useTranslation} from 'react-i18next';
 import {generatePath, useNavigate} from 'react-router-dom';
@@ -45,7 +45,6 @@ const CreateProposalProvider: React.FC<Props> = ({
   const {data: daoDetails, isLoading: daoDetailsLoading} = useDaoDetails(dao);
   const {client} = useClient();
   const {actions} = useActionsContext();
-  const [encodedActions, setEncodedActions] = useState<DaoAction[]>([]);
 
   const {id: pluginType, instanceAddress: pluginAddress} =
     daoDetails?.plugins[0] || ({} as InstalledPluginListItem);
@@ -63,70 +62,73 @@ const CreateProposalProvider: React.FC<Props> = ({
     [creationProcessState]
   );
 
-  const encodeActions = useCallback(async () => {
+  const encodeActions = useCallback(() => {
     const actionsForm = getValues().actions;
     const promises = actions?.map((action: ActionItem, index: number) => {
       if (action.name === 'withdraw_assets') {
         return (
           client?.encoding.withdrawAction(dao, {
             recipientAddress: actionsForm[index].to,
-            amount: BigInt(Number(actionsForm[index].amount)),
+            amount: BigInt(
+              Number(actionsForm[index].amount) * Math.pow(10, 18)
+            ),
             tokenAddress: actionsForm[index].tokenAddress,
-          }) || Promise.resolve({} as DaoAction)
+          }) || Promise.resolve({} as DaoAction) // In case that the return was undefined
         );
+        // TODO: Else Condition will change by adding other actions
       } else return Promise.resolve({} as DaoAction);
     });
-    Promise.all(promises).then(value => {
-      if (value) setEncodedActions(value);
-    });
+    return Promise.all(promises);
   }, [actions, client?.encoding, dao, getValues]);
 
   // Because getValues does NOT get updated on each render, leaving this as
   // a function to be called when data is needed instead of a memoized value
-  const getProposalCreationParams = useCallback((): ICreateProposalParams => {
-    const [
-      title,
-      summary,
-      description,
-      resources,
-      startDate,
-      startTime,
-      startUtc,
-      endDate,
-      endTime,
-      endUtc,
-    ] = getValues([
-      'proposalTitle',
-      'proposalSummary',
-      'proposal',
-      'links',
-      'startDate',
-      'startTime',
-      'startUtc',
-      'endDate',
-      'endTime',
-      'endUtc',
-    ]);
-
-    if (actions.length !== 0) encodeActions();
-
-    return {
-      pluginAddress,
-      metadata: {
+  const getProposalCreationParams =
+    useCallback(async (): Promise<ICreateProposalParams> => {
+      const [
         title,
         summary,
         description,
         resources,
-      },
-      startDate: new Date(
-        `${startDate}T${startTime}:00${getCanonicalUtcOffset(startUtc)}`
-      ),
-      endDate: new Date(
-        `${endDate}T${endTime}:00${getCanonicalUtcOffset(endUtc)}`
-      ),
-      actions: encodedActions,
-    };
-  }, [actions.length, encodeActions, encodedActions, getValues, pluginAddress]);
+        startDate,
+        startTime,
+        startUtc,
+        endDate,
+        endTime,
+        endUtc,
+      ] = getValues([
+        'proposalTitle',
+        'proposalSummary',
+        'proposal',
+        'links',
+        'startDate',
+        'startTime',
+        'startUtc',
+        'endDate',
+        'endTime',
+        'endUtc',
+      ]);
+
+      const actions = await encodeActions();
+
+      // Ignore encoding if the proposal had no actions
+      return {
+        pluginAddress,
+        metadata: {
+          title,
+          summary,
+          description,
+          resources,
+        },
+        startDate: new Date(
+          `${startDate}T${startTime}:00${getCanonicalUtcOffset(startUtc)}`
+        ),
+        endDate: new Date(
+          `${endDate}T${endTime}:00${getCanonicalUtcOffset(endUtc)}`
+        ),
+        actions,
+      };
+    }, [encodeActions, getValues, pluginAddress]);
 
   const estimateCreationFees = useCallback(async () => {
     if (!pluginClient) {
@@ -134,8 +136,9 @@ const CreateProposalProvider: React.FC<Props> = ({
         new Error('ERC20 SDK client is not initialized correctly')
       );
     }
-
-    return pluginClient?.estimation.createProposal(getProposalCreationParams());
+    return pluginClient?.estimation.createProposal(
+      await getProposalCreationParams()
+    );
   }, [getProposalCreationParams, pluginClient]);
 
   const {tokenPrice, maxFee, averageFee, stopPolling} = usePollGasFee(
@@ -164,7 +167,7 @@ const CreateProposalProvider: React.FC<Props> = ({
     }
 
     const proposalIterator = pluginClient.methods.createProposal(
-      getProposalCreationParams()
+      await getProposalCreationParams()
     );
 
     if (creationProcessState === TransactionState.SUCCESS) {

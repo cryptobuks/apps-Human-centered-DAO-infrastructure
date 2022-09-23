@@ -20,6 +20,10 @@ import {useGlobalModalContext} from './globalModals';
 import {useNetwork} from './network';
 import {useDaoDetails} from 'hooks/useDaoDetails';
 import {getCanonicalUtcOffset} from 'utils/date';
+import {useClient} from 'hooks/useClient';
+import {useActionsContext} from './actions';
+import {ActionItem} from 'utils/types';
+import {DaoAction} from '@aragon/sdk-client/dist/internal/interfaces/common';
 
 type Props = {
   showTxModal: boolean;
@@ -39,6 +43,9 @@ const CreateProposalProvider: React.FC<Props> = ({
   const {open} = useGlobalModalContext();
   const {data: dao, isLoading} = useDaoParam();
   const {data: daoDetails, isLoading: daoDetailsLoading} = useDaoDetails(dao);
+  const {client} = useClient();
+  const {actions} = useActionsContext();
+  const [encodedActions, setEncodedActions] = useState<DaoAction[]>([]);
 
   const {id: pluginType, instanceAddress: pluginAddress} =
     daoDetails?.plugins[0] || ({} as InstalledPluginListItem);
@@ -55,6 +62,24 @@ const CreateProposalProvider: React.FC<Props> = ({
     () => creationProcessState === TransactionState.WAITING,
     [creationProcessState]
   );
+
+  const encodeActions = useCallback(async () => {
+    const actionsForm = getValues().actions;
+    const promises = actions?.map((action: ActionItem, index: number) => {
+      if (action.name === 'withdraw_assets') {
+        return (
+          client?.encoding.withdrawAction(dao, {
+            recipientAddress: actionsForm[index].to,
+            amount: BigInt(Number(actionsForm[index].amount)),
+            tokenAddress: actionsForm[index].tokenAddress,
+          }) || Promise.resolve({} as DaoAction)
+        );
+      } else return Promise.resolve({} as DaoAction);
+    });
+    Promise.all(promises).then(value => {
+      if (value) setEncodedActions(value);
+    });
+  }, [actions, client?.encoding, dao, getValues]);
 
   // Because getValues does NOT get updated on each render, leaving this as
   // a function to be called when data is needed instead of a memoized value
@@ -83,6 +108,8 @@ const CreateProposalProvider: React.FC<Props> = ({
       'endUtc',
     ]);
 
+    if (actions.length !== 0) encodeActions();
+
     return {
       pluginAddress,
       metadata: {
@@ -97,29 +124,9 @@ const CreateProposalProvider: React.FC<Props> = ({
       endDate: new Date(
         `${endDate}T${endTime}:00${getCanonicalUtcOffset(endUtc)}`
       ),
-      actions: [],
+      actions: encodedActions,
     };
-  }, [getValues, pluginAddress]);
-
-  const encodeActions = useMemo(() => {
-    const actions = getValues().actions;
-    // return actions?.map((action: Record<string, string>) => {
-    console.log('action', actions);
-    // if (action.name === 'withdraw_assets') {
-    // doesn't matter which client we use to encode actions, both are the same
-    // return pluginClient?.encode.actions.withdraw(
-    //   action.to,
-    //   BigInt(parseUnits(action.amount, 18).toBigInt()),
-    //   {
-    //     to: action.to,
-    //     token: action.tokenAddress,
-    //     amount: BigInt(parseUnits(action.amount, 18).toBigInt()),
-    //     reference: action.reference,
-    //   }
-    // );
-    // }
-    // });
-  }, [getValues]);
+  }, [actions.length, encodeActions, encodedActions, getValues, pluginAddress]);
 
   const estimateCreationFees = useCallback(async () => {
     if (!pluginClient) {

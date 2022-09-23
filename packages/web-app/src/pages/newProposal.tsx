@@ -30,14 +30,14 @@ const NewProposal: React.FC = () => {
 
   return (
     <FormProvider {...formMethods}>
-      <CreateProposalProvider
-        showTxModal={showTxModal}
-        setShowTxModal={setShowTxModal}
-      >
-        <ActionsProvider daoId={dao}>
+      <ActionsProvider daoId={dao}>
+        <CreateProposalProvider
+          showTxModal={showTxModal}
+          setShowTxModal={setShowTxModal}
+        >
           <ProposalStepper enableTxModal={enableTxModal} />
-        </ActionsProvider>
-      </CreateProposalProvider>
+        </CreateProposalProvider>
+      </ActionsProvider>
     </FormProvider>
   );
 };
